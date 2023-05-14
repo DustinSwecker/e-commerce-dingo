@@ -16,6 +16,8 @@ In order to install this project, clone the repo from GitHub .
 
 This application is accessed by typing 'node server.js' into the command prompt when the after accessing the filepath. From there the paths can be tested with the applications such as insomnia.
 
+Walkthrough guide: https://www.loom.com/share/6e30796966474463b708d82febdeb089
+
 ## Credits 
 
 GitHub username: Xandromus, Name: Xander Rapstine

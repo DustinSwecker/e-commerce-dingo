@@ -4,19 +4,41 @@ const { Product, Category, Tag, ProductTag } = require('../../models');
 // The `/api/products` endpoint
 
 // get all products
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   // find all products
-  // be sure to include its associated Category and Tag data
+  try {
+    const allProductData = await Product.findAll({
+      include: [{ model: Category }, { model: Tag }]
+    });
+    res.status(200).json(allProductData);
+  }catch (err) {
+    res.status(500).json(err);
+  }
 });
+  
+
 
 // get one product
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   // find a single product by its `id`
-  // be sure to include its associated Category and Tag data
+  try {
+    const getOneProduct = await Product.findByPk(req.params.id, {
+      include: [{ model: Category }, { model: Tag }]
+    });
+
+    if (!getOneProduct) {
+      return res.status(404).json({message: 'No category by that id!'});
+          
+    } 
+    return res.status(200).json(getOneProduct);
+  
+  } catch (err) {
+    res.status(500).json(err);
+  };
 });
 
 // create new product
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
   /* req.body should look like this...
     {
       product_name: "Basketball",
@@ -25,7 +47,11 @@ router.post('/', (req, res) => {
       tagIds: [1, 2, 3, 4]
     }
   */
-  Product.create(req.body)
+    if (!req.body) {
+      return res.status(404).json('Please input data to post!');
+    };
+  
+  await Product.create(req.body)
     .then((product) => {
       // if there's product tags, we need to create pairings to bulk create in the ProductTag model
       if (req.body.tagIds.length) {
@@ -35,15 +61,18 @@ router.post('/', (req, res) => {
             tag_id,
           };
         });
-        return ProductTag.bulkCreate(productTagIdArr);
+        
+         return ProductTag.bulkCreate(productTagIdArr);
       }
       // if no product tags, just respond
-      res.status(200).json(product);
+      return res.status(200).json(product);
     })
-    .then((productTagIds) => res.status(200).json(productTagIds))
+    .then((productTagIds) => { 
+      return res.status(200).json(productTagIds)
+    })
     .catch((err) => {
       console.log(err);
-      res.status(400).json(err);
+      return res.status(400).json(err);
     });
 });
 
@@ -85,12 +114,21 @@ router.put('/:id', (req, res) => {
     .then((updatedProductTags) => res.json(updatedProductTags))
     .catch((err) => {
       // console.log(err);
-      res.status(400).json(err);
+      return res.status(400).json(err);
     });
 });
 
-router.delete('/:id', (req, res) => {
-  // delete one product by its `id` value
+router.delete('/:id', async (req, res) => {
+  try {
+    await Product.destroy({
+      where: {
+        id: req.params.id,
+      },
+    });
+    return res.status(200).json('Category deleted');
+  } catch (err) {
+    return res.status(400).json(err);
+  }
 });
 
 module.exports = router;
